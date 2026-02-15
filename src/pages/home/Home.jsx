@@ -1,10 +1,16 @@
 import React from 'react';
-
+import ProductCard from '../../components/common/ProductCard';
+import PerfumeHero from '../../components/user/HeroSection';
+import UseCategory from '../../hooks/UseCategory';
+import CategoryCard from '../../components/common/CategoryCard';
+import CategorySection from '../../components/common/CategorySection';
 const Home = () => {
     return (
-        <div>
-            Home Page
-        </div>
+        <>
+            <PerfumeHero />
+            <ProductCard />
+            <CategorySection />
+        </>
     );
 }
 

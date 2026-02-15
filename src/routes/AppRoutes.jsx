@@ -7,6 +7,7 @@ import Products from '../pages/home/Products';
 import Cart from '../pages/home/Cart';
 import NotFound from '../components/common/NotFound';
 import Login from '../pages/auth/Login';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const router = createBrowserRouter([
     //public routes
@@ -62,9 +63,12 @@ const router = createBrowserRouter([
 }
 ])
   function AppRoutes() {
+    const query = new QueryClient("categories");
     return (
+    <QueryClientProvider client={query}>
       <RouterProvider router={router} />
-    )
+    </QueryClientProvider>
+  )
 }
 
 export default AppRoutes;

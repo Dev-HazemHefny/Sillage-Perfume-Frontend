@@ -1,17 +1,18 @@
 import React from 'react';
-import ProductCard from '../../components/common/ProductCard';
 import PerfumeHero from '../../components/user/HeroSection';
-import UseCategory from '../../hooks/UseCategory';
-import CategoryCard from '../../components/common/CategoryCard';
 import CategorySection from '../../components/common/CategorySection';
+import FeaturedProducts from '../../components/user/FeaturedProducts';
+import Newsletter from '../../components/user/Newsletter';
+
 const Home = () => {
-    return (
-        <>
-            <PerfumeHero />
-            <ProductCard />
-            <CategorySection />
-        </>
-    );
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-rose-50 to-amber-50">
+      <PerfumeHero />
+      <CategorySection />
+      <FeaturedProducts />
+      <Newsletter />
+    </div>
+  );
 }
 
 export default Home;

@@ -1,74 +1,88 @@
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Toaster } from 'react-hot-toast';
 
 import HomeLayout from '../components/layout/HomeLayout';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Home from '../pages/home/Home';
-import AdminLayout from '../components/layout/AdminLayout';
 import Products from '../pages/home/Products';
+import ProductDetails from '../pages/home/ProductDetails';
 import Cart from '../pages/home/Cart';
-import NotFound from '../components/common/NotFound';
 import Login from '../pages/auth/Login';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import NotFound from '../components/common/NotFound';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 const router = createBrowserRouter([
-    //public routes
-{
+  {
     path: "/",
     element: <HomeLayout />,
     children: [
-           { 
-          index: true, 
-          element: <Home /> 
-        },
-        {
-          path: "products",
-          element: <Products />,
-        },
-        {
-            path:"cart",
-            element: < Cart/>
-        }
+      { 
+        index: true, 
+        element: <Home /> 
+      },
+      {
+        path: "products",
+        element: <Products />,
+      },
+      {
+        path: "products/:id", // ✅ Product Details Route
+        element: <ProductDetails />,
+      },
+      {
+        path: "cart",
+        element: <Cart />
+      }
     ],
-},
-
-{
+  },
+  {
     path: "login",
     element: <Login />,
-},
- // 🔒 Protected Admin Routes
-//   {
-//     path: "admin",       // ✅ /admin مش لازم / في الأول
-//     element: (
-//       <ProtectedRoute allowedRoles={['admin']}>
-//         <AdminLayout />
-//       </ProtectedRoute>
-//     ),
-//     children: [
-//       {
-//         index: true,
-//         element: <AdminDashboard />,
-//       },
-//       {
-//         path: "users",   // ✅ يبقى /admin/users
-//         element: <UsersManagement />,
-//       },
-//       {
-//         path: "settings",
-//         element: <AdminSettings />,
-//       },
-//     ],
-//   },
-{
+  },
+  {
     path: "*",
     element: <NotFound />,  
-}
-])
-  function AppRoutes() {
-    const query = new QueryClient("categories");
-    return (
-    <QueryClientProvider client={query}>
+  }
+]);
+
+function AppRoutes() {
+  return (
+    <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
-  )
+  );
 }
 
 export default AppRoutes;

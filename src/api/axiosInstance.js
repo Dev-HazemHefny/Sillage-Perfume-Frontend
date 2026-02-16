@@ -1,5 +1,4 @@
 import axios from 'axios';
-import toast from 'react-hot-toast';
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
@@ -61,44 +60,17 @@ axiosInstance.interceptors.response.use(
       const { status, data } = error.response;
 
       switch (status) {
-        case 400:
-          // Show validation errors if available
-          if (data.errors && Array.isArray(data.errors)) {
-            data.errors.forEach((err) => {
-              toast.error(`${err.field || 'Error'}: ${err.message}`);
-            });
-          } else {
-            toast.error(data.message || 'Bad request');
-          }
-          break;
-
         case 401:
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           window.location.href = '/login';
-          toast.error('Session expired. Please login again.');
           break;
-
-        case 403:
-          toast.error('You do not have permission.');
-          break;
-
-        case 404:
-          toast.error(data.message || 'Resource not found.');
-          break;
-
-        case 500:
-          toast.error('Server error. Please try again later.');
-          break;
-
         default:
-          toast.error(data.message || 'Something went wrong!');
+          // Let the component/hook handle the error notification
+          break;
       }
     } else if (error.request) {
       console.error('❌ Network Error - No response from server');
-      toast.error('Network error. Check backend is running on http://localhost:5000');
-    } else {
-      toast.error('An unexpected error occurred.');
     }
 
     return Promise.reject(error);

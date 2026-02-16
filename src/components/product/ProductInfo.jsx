@@ -1,46 +1,59 @@
 import React, { useState } from 'react';
 import { Heart, ShoppingCart, Share2, Star, Check, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
+import { useNotification } from '../../context/NotificationContext';
 import { useCart } from '../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { useWishlist } from '../../context/WishlistContext';
+
 
 export default function ProductInfo({ product }) {
   const navigate = useNavigate();
   const { addToCart, isInCart, getCartItem } = useCart();
+  const { success: successNotif, error: errorNotif } = useNotification();
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
   const [quantity, setQuantity] = useState(1);
-  const [isLiked, setIsLiked] = useState(false);
+
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const isLiked = isInWishlist(product._id);
 
   const cartItem = selectedSize ? getCartItem(product._id, selectedSize._id) : null;
   const inCart = selectedSize ? isInCart(product._id, selectedSize._id) : false;
 
+
+  const handleToggleLike = () => {
+    const result = toggleWishlist(product);
+    if (result.success) {
+      successNotif(result.message);
+    }
+  };
+
   const handleAddToCart = () => {
     if (!selectedSize) {
-      toast.error('Please select a size');
+      errorNotif('Please select a size');
       return;
     }
     if (!selectedSize.isAvailable) {
-      toast.error('This size is out of stock');
+      errorNotif('This size is out of stock');
       return;
     }
 
     const result = addToCart(product, selectedSize, quantity);
     if (result.success) {
-      toast.success(result.message);
+      successNotif(result.message);
       setQuantity(1);
     } else {
-      toast.error(result.message);
+      errorNotif(result.message);
     }
   };
 
   const handleBuyNow = () => {
     if (!selectedSize) {
-      toast.error('Please select a size');
+      errorNotif('Please select a size');
       return;
     }
     if (!selectedSize.isAvailable) {
-      toast.error('This size is out of stock');
+      errorNotif('This size is out of stock');
       return;
     }
 
@@ -48,7 +61,7 @@ export default function ProductInfo({ product }) {
     if (result.success) {
       navigate('/cart');
     } else {
-      toast.error(result.message);
+      errorNotif(result.message);
     }
   };
 
@@ -61,14 +74,14 @@ export default function ProductInfo({ product }) {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      toast.success('Link copied to clipboard!');
+      successNotif('Link copied to clipboard!');
     }
   };
 
-  
+
   return (
     <div className="space-y-6">
-      
+
       {/* Badges */}
       <div className="flex flex-wrap gap-2">
         {product.featured && (
@@ -97,37 +110,16 @@ export default function ProductInfo({ product }) {
         )}
       </div>
 
-      {/* Rating */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`w-5 h-5 ${
-                i < 4 ? 'fill-amber-400 text-amber-400' : 'text-gray-300'
-              }`}
-            />
-          ))}
-        </div>
-        <span className="text-sm text-gray-600">(4.8) 127 reviews</span>
-      </div>
-
-      {/* Price with Discount */}
+      {/* Price */}
       {selectedSize && (
         <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
           <div className="flex items-baseline gap-3 flex-wrap">
             <span className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              ${(selectedSize.price * 0.8).toFixed(2)}
-            </span>
-            <span className="text-2xl text-gray-400 line-through">
-              ${selectedSize.price}
-            </span>
-            <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-sm font-bold">
-              20% OFF
+              ${selectedSize.price.toFixed(2)}
             </span>
           </div>
           <p className="text-gray-600 text-sm mt-2">
-            Size: {selectedSize.size}{selectedSize.unit} • Save ${(selectedSize.price * 0.2).toFixed(2)}
+            Size: {selectedSize.size}{selectedSize.unit}
           </p>
           <div className="mt-3 flex items-center gap-2">
             {selectedSize.isAvailable ? (
@@ -156,21 +148,19 @@ export default function ProductInfo({ product }) {
                 setQuantity(1); // Reset quantity when changing size
               }}
               disabled={!size.isAvailable}
-              className={`relative p-4 rounded-xl border-2 transition-all ${
-                selectedSize?._id === size._id
-                  ? 'border-purple-500 bg-purple-50'
-                  : size.isAvailable
+              className={`relative p-4 rounded-xl border-2 transition-all ${selectedSize?._id === size._id
+                ? 'border-purple-500 bg-purple-50'
+                : size.isAvailable
                   ? 'border-gray-200 hover:border-purple-300'
                   : 'border-gray-200 opacity-50 cursor-not-allowed'
-              }`}
+                }`}
             >
               <div className="text-center">
                 <p className="text-lg font-bold text-gray-900">
                   {size.size}{size.unit}
                 </p>
-                <p className="text-sm text-gray-600 line-through">${size.price}</p>
                 <p className="text-sm text-purple-600 font-bold">
-                  ${(size.price * 0.8).toFixed(2)}
+                  ${size.price.toFixed(2)}
                 </p>
               </div>
               {!size.isAvailable && (
@@ -241,12 +231,11 @@ export default function ProductInfo({ product }) {
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => setIsLiked(!isLiked)}
-            className={`p-4 rounded-xl border-2 transition-all ${
-              isLiked
+            onClick={handleToggleLike}
+            className={`p-4 rounded-xl border-2 transition-all ${isLiked
                 ? 'border-rose-500 bg-rose-50 text-rose-600'
                 : 'border-gray-200 hover:border-rose-300 text-gray-600'
-            }`}
+              }`}
           >
             <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
           </motion.button>

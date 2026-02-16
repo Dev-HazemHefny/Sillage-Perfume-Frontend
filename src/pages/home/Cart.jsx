@@ -12,11 +12,8 @@ export default function Cart() {
     updateQuantity,
     clearCart,
     subtotal,
-    discount,
-    subtotalAfterDiscount,
     shipping,
     total,
-    totalSavings,
     freeShippingThreshold,
   } = useCart();
 
@@ -45,7 +42,7 @@ export default function Cart() {
     );
   }
 
-  const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotalAfterDiscount);
+  const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
   const handleRemoveItem = (itemId) => {
     const result = removeFromCart(itemId);
@@ -98,7 +95,7 @@ export default function Cart() {
               <div className="w-full bg-blue-200 rounded-full h-3 overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${Math.min((subtotalAfterDiscount / freeShippingThreshold) * 100, 100)}%` }}
+                  animate={{ width: `${Math.min((subtotal / freeShippingThreshold) * 100, 100)}%` }}
                   className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
                   transition={{ duration: 0.5 }}
                 />
@@ -170,16 +167,8 @@ export default function Cart() {
 
                           <div className="text-right">
                             <p className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                              ${(item.size.price * item.quantity * 0.8).toFixed(2)}
-                            </p>
-                            <p className="text-sm text-gray-400 line-through">
                               ${(item.size.price * item.quantity).toFixed(2)}
                             </p>
-                            {item.quantity > 1 && (
-                              <p className="text-xs text-green-600 font-medium">
-                                Save ${((item.size.price * item.quantity) * 0.2).toFixed(2)}
-                              </p>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -200,22 +189,6 @@ export default function Cart() {
                     <span className="font-semibold">${subtotal.toFixed(2)}</span>
                   </div>
 
-                  {discount > 0 && (
-                    <div className="flex justify-between items-center text-green-600">
-                      <div className="flex items-center gap-2">
-                        <span>Discount (20%)</span>
-                      </div>
-                      <span className="font-semibold">-${discount.toFixed(2)}</span>
-                    </div>
-                  )}
-
-                  {discount > 0 && (
-                    <div className="flex justify-between text-gray-900 font-medium">
-                      <span>Subtotal after discount</span>
-                      <span>${subtotalAfterDiscount.toFixed(2)}</span>
-                    </div>
-                  )}
-
                   <div className="flex justify-between text-gray-700">
                     <span>Shipping</span>
                     <span className="font-semibold">
@@ -227,14 +200,6 @@ export default function Cart() {
                     </span>
                   </div>
                 </div>
-
-                {totalSavings > 0 && (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
-                    <p className="text-sm text-green-800 font-medium text-center">
-                      🎉 You're saving <span className="font-bold">${totalSavings.toFixed(2)}</span> on this order!
-                    </p>
-                  </div>
-                )}
 
                 <div className="flex justify-between text-2xl font-bold">
                   <span>Total</span>

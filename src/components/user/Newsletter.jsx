@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Mail, Sparkles, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
+import { useNotification } from '../../context/NotificationContext';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const { success: successNotif } = useNotification();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -13,7 +14,7 @@ export default function Newsletter() {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    toast.success('Thank you for subscribing! 🎉');
+    successNotif('Thank you for subscribing! Check your email for updates.');
     setEmail('');
     setLoading(false);
   };

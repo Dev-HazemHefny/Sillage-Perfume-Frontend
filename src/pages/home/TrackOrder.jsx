@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Package, Phone, MapPin, Calendar, CheckCircle, Clock, XCircle, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useNotification } from '../../context/NotificationContext';
 import { useTrackOrder } from '../../hooks/useOrders';
 
 export default function TrackOrder() {
   const [trackingCode, setTrackingCode] = useState('');
   const [phoneLastDigits, setPhoneLastDigits] = useState('');
   const { mutate: trackOrder, data, isPending, error, reset } = useTrackOrder();
+  const { error: errorNotif } = useNotification();
 
   const order = data?.data;
 
@@ -15,12 +16,12 @@ export default function TrackOrder() {
     e.preventDefault();
     
     if (!trackingCode.trim()) {
-      toast.error('Please enter tracking code');
+      errorNotif('Please enter tracking code');
       return;
     }
 
     if (phoneLastDigits.length !== 4) {
-      toast.error('Please enter last 4 digits of phone number');
+      errorNotif('Please enter last 4 digits of phone number');
       return;
     }
 
@@ -29,7 +30,7 @@ export default function TrackOrder() {
       {
         onError: (err) => {
           const message = err.response?.data?.message || 'Failed to track order';
-          toast.error(message);
+          errorNotif(message);
         },
       }
     );

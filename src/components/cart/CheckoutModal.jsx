@@ -1,11 +1,15 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingBag, User, Phone, MapPin, FileText, Calendar, Loader2 } from 'lucide-react';
 import { useCreateOrder } from '../../hooks/useOrders';
-import toast from 'react-hot-toast';
+import { useNotification } from '../../context/NotificationContext';
+import { useCart } from '../../context/CartContext';
 
 export default function CheckoutModal({ isOpen, onClose, cartItems, total }) {
   const { mutate: createOrder, isPending } = useCreateOrder();
+  const { error: errorNotif, success: successNotif } = useNotification();
+  const { clearCart } = useCart();
   
   const [formData, setFormData] = useState({
     userName: '',
@@ -60,7 +64,6 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -70,11 +73,10 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }) {
     e.preventDefault();
 
     if (!validateForm()) {
-      toast.error('Please fill in all required fields correctly');
+      errorNotif('Please fill in all required fields correctly');
       return;
     }
 
-    // Prepare order data
     const orderData = {
       userName: formData.userName.trim(),
       userPhone: formData.userPhone.trim(),
@@ -95,19 +97,45 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }) {
 
     createOrder(orderData, {
       onSuccess: (response) => {
-        const code = response.tracking?.trackingCode || response.data?.trackingCode;
-        setTrackingCode(code);
-        toast.success('Order placed successfully! 🎉');
+        console.log('📦 Full Response:', response);
+        
+        const code = response.tracking?.trackingCode || 
+                      response.data?.trackingCode || 
+                      response.data?.tracking?.trackingCode;
+        
+        console.log('✅ Tracking Code:', code);
+        
+        if (code) {
+          // ✅ ONLY set tracking code - DON'T clear cart yet
+          setTrackingCode(code);
+          successNotif('Order placed successfully! Your order is being prepared.');
+          // ❌ NO clearCart() here!
+        } else {
+          console.error('❌ No tracking code found');
+          errorNotif('Order created but tracking code not found');
+        }
       },
+      onError: (error) => {
+        console.error('❌ Order Error:', error);
+        errorNotif(error.response?.data?.message || 'Failed to create order');
+      }
     });
   };
 
   const handleCopyTrackingCode = () => {
     navigator.clipboard.writeText(trackingCode);
-    toast.success('Tracking code copied to clipboard!');
+    successNotif('Tracking code copied to clipboard!');
   };
 
+  // ✅ Clear cart when user closes the success screen
   const handleClose = () => {
+    // Clear cart if order was successful
+    if (trackingCode) {
+      clearCart();
+      console.log('🗑️ Cart cleared when closing success screen');
+    }
+    
+    // Reset form
     setFormData({
       userName: '',
       userPhone: '',
@@ -122,6 +150,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }) {
     setTrackingCode(null);
     onClose();
   };
+
 
   return (
     <AnimatePresence>
@@ -387,6 +416,8 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, total }) {
                       </div>
                     </div>
                   </div>
+
+                  
 
                   {/* Submit Button */}
                   <button

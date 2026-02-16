@@ -6,7 +6,6 @@ export default function ProductTabs({ product }) {
 
   const tabs = [
     { id: 'description', label: 'Description', icon: Package },
-    { id: 'reviews', label: 'Reviews', icon: MessageSquare },
     { id: 'shipping', label: 'Shipping', icon: ShieldCheck },
   ];
 
@@ -51,18 +50,6 @@ export default function ProductTabs({ product }) {
             )}
           </div>
         )}
-
-        {activeTab === 'reviews' && (
-          <div className="text-center py-12">
-            <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No reviews yet</h3>
-            <p className="text-gray-600">Be the first to review this product!</p>
-            <button className="mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-xl transition-all">
-              Write a Review
-            </button>
-          </div>
-        )}
-
         {activeTab === 'shipping' && (
           <div className="space-y-6">
             <div className="flex items-start gap-4">
@@ -71,7 +58,7 @@ export default function ProductTabs({ product }) {
               </div>
               <div>
                 <h4 className="font-bold text-gray-900 mb-2">Free Shipping</h4>
-                <p className="text-gray-600">On orders over $50</p>
+                <p className="text-gray-600">Free Shipping</p>
               </div>
             </div>
 

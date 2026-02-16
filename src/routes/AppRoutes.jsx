@@ -1,7 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Toaster } from "react-hot-toast";
 
 import HomeLayout from "../components/layout/HomeLayout";
 import Home from "../pages/home/Home";
@@ -17,9 +16,12 @@ import AdminCategories from "../pages/dashboard/adminCategories";
 import AdminOrders from "../pages/dashboard/adminOrders";
 import AdminRoute from "./AdminRoute";
 import { CartProvider } from "../context/CartContext";
+import { NotificationProvider } from "../context/NotificationContext";
 import Categories from "../pages/home/Categories";
 import CategoryProducts from "../pages/home/CategoryProducts";
 import TrackOrder from "../pages/home/TrackOrder";
+import { WishlistProvider } from "../context/WishlistContext";
+import Wishlist from "../pages/home/Wishlist";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,7 +65,9 @@ const router = createBrowserRouter([
       {
         path: "track-order",
         element: <TrackOrder />
-      }
+      },
+            { path: 'wishlist', element: <Wishlist /> },
+
     ],
   },
   {
@@ -106,32 +110,15 @@ const router = createBrowserRouter([
 function AppRoutes() {
   return (
     <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <RouterProvider router={router} />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: "#363636",
-              color: "#fff",
-            },
-            success: {
-              iconTheme: {
-                primary: "#10b981",
-                secondary: "#fff",
-              },
-            },
-            error: {
-              iconTheme: {
-                primary: "#ef4444",
-                secondary: "#fff",
-              },
-            },
-          }}
-        />
-        <ReactQueryDevtools initialIsOpen={false} />
-      </CartProvider>
+      <NotificationProvider>
+                <WishlistProvider>
+
+        <CartProvider>
+          <RouterProvider router={router} />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </CartProvider>
+        </WishlistProvider>
+      </NotificationProvider>
     </QueryClientProvider>
   );
 }

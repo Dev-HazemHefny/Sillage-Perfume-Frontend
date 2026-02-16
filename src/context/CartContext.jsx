@@ -21,7 +21,6 @@ export const CartProvider = ({ children }) => {
     }
   });
 
-  const DISCOUNT_RATE = 0.20;
   const FREE_SHIPPING_THRESHOLD = 100;
   const SHIPPING_COST = 15;
 
@@ -153,12 +152,9 @@ export const CartProvider = ({ children }) => {
     0
   );
 
-  const discount = subtotal * DISCOUNT_RATE;
-  const subtotalAfterDiscount = subtotal - discount;
-  const shipping = subtotalAfterDiscount > FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-  const total = subtotalAfterDiscount + shipping;
+  const shipping = subtotal > FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const total = subtotal + shipping;
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0);
-  const totalSavings = discount;
 
   const value = {
     cartItems,
@@ -169,13 +165,9 @@ export const CartProvider = ({ children }) => {
     isInCart,
     getCartItem,
     subtotal,
-    discount,
-    subtotalAfterDiscount,
     shipping,
     total,
     cartCount,
-    totalSavings,
-    discountRate: DISCOUNT_RATE,
     freeShippingThreshold: FREE_SHIPPING_THRESHOLD,
   };
 

@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, Heart, User, Menu, X, Sparkles } from 'lucide-react';
+import {ShoppingBag, Heart, User, Menu, X, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
   const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,15 +23,13 @@ const Navbar = () => {
 
   useEffect(() => {
     setMobileMenuOpen(false);
-    setSearchOpen(false);
   }, [location]);
 
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/products', label: 'Shop' },
     { path: '/categories', label: 'Categories' },
-      { path: '/track-order', label: 'Track Order' },
-
+    { path: '/track-order', label: 'Track Order' },
   ];
 
   const isActive = (path) => {
@@ -42,15 +40,6 @@ const Navbar = () => {
       return location.pathname === '/products' || location.pathname.startsWith('/products/');
     }
     return location.pathname === path;
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
-      setSearchOpen(false);
-      setSearchQuery('');
-    }
   };
 
   return (
@@ -119,27 +108,23 @@ const Navbar = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-2">
-              
-              {/* Search Button */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSearchOpen(true)}
-                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors group"
-              >
-                <Search className="w-4 h-4 text-gray-600 group-hover:text-purple-600 transition-colors" />
-                <span className="text-sm text-gray-600 hidden md:inline">Search</span>
-              </motion.button>
-
               {/* Wishlist */}
               <Link to="/wishlist">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="relative p-3 hover:bg-gray-100 rounded-full transition-colors group"
+                  className="relative p-3 hover:bg-rose-50 rounded-full transition-colors group"
                 >
                   <Heart className="w-5 h-5 text-gray-700 group-hover:text-rose-500 transition-colors" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {wishlistCount > 0 && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-rose-500 to-pink-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg"
+                    >
+                      {wishlistCount > 9 ? '9+' : wishlistCount}
+                    </motion.span>
+                  )}
                 </motion.div>
               </Link>
 
@@ -163,17 +148,7 @@ const Navbar = () => {
                 </motion.div>
               </Link>
 
-              {/* User Account */}
-              <Link to="/login">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-full hover:shadow-lg hover:shadow-purple-500/50 transition-all"
-                >
-                  <User className="w-4 h-4" />
-                  <span className="text-sm font-medium hidden md:inline">Account</span>
-                </motion.div>
-              </Link>
+  
 
               {/* Mobile Menu Toggle */}
               <motion.button
@@ -264,6 +239,21 @@ const Navbar = () => {
 
                 <div className="space-y-3 pt-6 border-t border-gray-200">
                   <Link
+                    to="/wishlist"
+                    className="flex items-center justify-between px-4 py-3 bg-rose-50 rounded-xl hover:bg-rose-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Heart className="w-5 h-5 text-rose-600" />
+                      <span className="font-medium text-rose-600">Wishlist</span>
+                    </div>
+                    {wishlistCount > 0 && (
+                      <span className="px-2.5 py-1 bg-rose-600 text-white text-xs font-bold rounded-full">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </Link>
+
+                  <Link
                     to="/cart"
                     className="flex items-center justify-between px-4 py-3 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
                   >
@@ -276,14 +266,6 @@ const Navbar = () => {
                         {cartCount}
                       </span>
                     )}
-                  </Link>
-
-                  <Link
-                    to="/wishlist"
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl transition-colors"
-                  >
-                    <Heart className="w-5 h-5 text-gray-600" />
-                    <span className="font-medium text-gray-700">Wishlist</span>
                   </Link>
 
                   <Link
@@ -303,75 +285,6 @@ const Navbar = () => {
               </div>
             </motion.div>
           </>
-        )}
-      </AnimatePresence>
-
-      {/* Search Modal */}
-      <AnimatePresence>
-        {searchOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-32 px-4"
-            onClick={() => setSearchOpen(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-2xl"
-            >
-              <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-                <form onSubmit={handleSearch} className="p-6">
-                  <div className="flex items-center gap-4 mb-6">
-                    <Search className="w-6 h-6 text-gray-400" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search for perfumes, brands, or collections..."
-                      className="flex-1 text-lg outline-none placeholder-gray-400"
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setSearchOpen(false)}
-                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                      <X className="w-5 h-5 text-gray-500" />
-                    </button>
-                  </div>
-
-                  {!searchQuery && (
-                    <div className="space-y-3">
-                      <p className="text-sm text-gray-500">Popular searches</p>
-                      {['Dior Sauvage', 'Chanel No. 5', 'Tom Ford', 'Creed Aventus'].map((term) => (
-                        <button
-                          key={term}
-                          type="button"
-                          onClick={() => setSearchQuery(term)}
-                          className="block w-full text-left px-4 py-3 hover:bg-purple-50 rounded-xl transition-colors"
-                        >
-                          <span className="text-gray-700">{term}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {searchQuery && (
-                    <button
-                      type="submit"
-                      className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
-                    >
-                      Search for "{searchQuery}"
-                    </button>
-                  )}
-                </form>
-              </div>
-            </motion.div>
-          </motion.div>
         )}
       </AnimatePresence>
 

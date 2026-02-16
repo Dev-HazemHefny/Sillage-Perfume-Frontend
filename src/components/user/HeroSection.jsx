@@ -38,20 +38,6 @@ export default function PerfumeHero() {
       {/* Main Content */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex justify-center mb-8"
-        >
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-rose-100">
-            <TrendingUp className="w-4 h-4 text-rose-500" />
-            <span className="text-sm font-medium bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
-              20% OFF - Limited Time
-            </span>
-          </div>
-        </motion.div>
-
         {/* Main Grid */}
         <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[calc(100vh-300px)]">
           
@@ -181,10 +167,7 @@ export default function PerfumeHero() {
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="text-3xl font-bold text-gray-900">
-                          ${(featuredProduct.sizes?.[0]?.price * 0.8).toFixed(2)}
-                        </span>
-                        <span className="text-lg text-gray-400 line-through ml-2">
-                          ${featuredProduct.sizes?.[0]?.price}
+                          ${featuredProduct.sizes?.[0]?.price.toFixed(2)}
                         </span>
                       </div>
                       <Link to={`/products/${featuredProduct._id}`}>
@@ -197,11 +180,6 @@ export default function PerfumeHero() {
                 )}
               </div>
 
-              {/* Discount Badge */}
-              <div className="absolute -left-6 bottom-32 bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-2xl shadow-2xl p-4 hover:scale-105 transition-transform z-20">
-                <p className="text-3xl font-bold">20%</p>
-                <p className="text-sm">OFF</p>
-              </div>
             </div>
           </motion.div>
         </div>

@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Sparkles, Check, Tag } from 'lucide-react';
+import { ShoppingCart, Sparkles, Check, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import toast from 'react-hot-toast';
+import { useWishlist } from '../../context/WishlistContext';
+import { useNotification } from '../../context/NotificationContext';
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
   const { addToCart, isInCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { success: successNotif, error: errorNotif } = useNotification();
   const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || null);
   const [isHovered, setIsHovered] = useState(false);
 
   if (!product) return null;
 
-  const { name, brand, images, sizes, gender, season, featured, priceRange } = product;
+  const { name, brand, images, sizes, gender, season, featured } = product;
   const mainImage = images?.[0]?.url || 'https://via.placeholder.com/400';
   const inCart = selectedSize ? isInCart(product._id, selectedSize._id) : false;
+  const inWishlist = isInWishlist(product._id);
 
   const handleCardClick = () => {
     navigate(`/products/${product._id}`);
@@ -30,10 +34,17 @@ export default function ProductCard({ product }) {
     if (selectedSize) {
       const result = addToCart(product, selectedSize, 1);
       if (result.success) {
-        toast.success(result.message);
+        successNotif(result.message);
       } else {
-        toast.error(result.message);
+        errorNotif(result.message);
       }
+    }
+  };
+
+  const handleToggleWishlist = () => {
+    const result = toggleWishlist(product);
+    if (result.success) {
+      successNotif(result.message);
     }
   };
 
@@ -62,41 +73,52 @@ export default function ProductCard({ product }) {
               <span>Featured</span>
             </motion.div>
           )}
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.1 }}
-            className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-xs font-bold shadow-lg"
-          >
-            <Tag className="w-3 h-3" />
-            <span>20% OFF</span>
-          </motion.div>
         </div>
 
-        {/* Add to Cart Button - Shows on Hover */}
+        {/* Action Buttons - Show on Hover */}
         <AnimatePresence>
-          {isHovered && selectedSize && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: -10 }}
-              transition={{ duration: 0.2 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={(e) => handleActionClick(e, handleAddToCart)}
-              disabled={!selectedSize.isAvailable || inCart}
-              className={`absolute top-4 right-4 z-20 p-3.5 rounded-full shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
-                inCart
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-purple-500/50'
-              }`}
+          {isHovered && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute top-4 right-4 z-20 flex gap-2"
             >
-              {inCart ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                <ShoppingCart className="w-5 h-5" />
+              {/* Wishlist Button */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => handleActionClick(e, handleToggleWishlist)}
+                className={`p-3 rounded-full shadow-2xl transition-all ${
+                  inWishlist
+                    ? 'bg-rose-500 text-white'
+                    : 'bg-white text-gray-700 hover:bg-rose-50'
+                }`}
+              >
+                <Heart className={`w-5 h-5 ${inWishlist ? 'fill-current' : ''}`} />
+              </motion.button>
+
+              {/* Add to Cart Button */}
+              {selectedSize && (
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={(e) => handleActionClick(e, handleAddToCart)}
+                  disabled={!selectedSize.isAvailable || inCart}
+                  className={`p-3 rounded-full shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                    inCart
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                  }`}
+                >
+                  {inCart ? (
+                    <Check className="w-5 h-5" />
+                  ) : (
+                    <ShoppingCart className="w-5 h-5" />
+                  )}
+                </motion.button>
               )}
-            </motion.button>
+            </motion.div>
           )}
         </AnimatePresence>
 
@@ -183,15 +205,12 @@ export default function ProductCard({ product }) {
             </div>
           )}
 
-          {/* Price Section with Discount */}
+          {/* Price Section */}
           {selectedSize && (
             <div className="pt-4 border-t border-gray-100">
               <div className="flex items-baseline gap-2 mb-2">
                 <span className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  ${(selectedSize.price * 0.8).toFixed(2)}
-                </span>
-                <span className="text-lg text-gray-400 line-through">
-                  ${selectedSize.price}
+                  ${selectedSize.price.toFixed(2)}
                 </span>
               </div>
               
@@ -204,12 +223,17 @@ export default function ProductCard({ product }) {
                   </span>
                 </div>
                 
-                {inCart && (
-                  <span className="flex items-center gap-1 text-xs font-bold text-green-600">
-                    <Check className="w-3 h-3" />
-                    In Cart
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {inCart && (
+                    <span className="flex items-center gap-1 text-xs font-bold text-green-600">
+                      <Check className="w-3 h-3" />
+                      In Cart
+                    </span>
+                  )}
+                  {inWishlist && (
+                    <Heart className="w-4 h-4 text-rose-500 fill-current" />
+                  )}
+                </div>
               </div>
             </div>
           )}

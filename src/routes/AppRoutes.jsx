@@ -16,6 +16,9 @@ import AdminProducts from "../pages/dashboard/adminProducts";
 import AdminCategories from "../pages/dashboard/adminCategories";
 import AdminOrders from "../pages/dashboard/adminOrders";
 import AdminRoute from "./AdminRoute";
+import { CartProvider } from "../context/CartContext";
+import Categories from "../pages/home/Categories";
+import CategoryProducts from "../pages/home/CategoryProducts";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,12 +51,20 @@ const router = createBrowserRouter([
         path: "cart",
         element: <Cart />,
       },
+         {
+        path: "categories",
+        element: <Categories />,
+      },
+      {
+        path: "categories/:categoryId",
+        element: <CategoryProducts />,
+      },
     ],
   },
   {
     path: "/admin",
     // element: <AdminLayout />,
-       element: (
+    element: (
       <AdminRoute>
         <AdminLayout />
       </AdminRoute>
@@ -68,12 +79,12 @@ const router = createBrowserRouter([
         element: <AdminProducts />,
       },
       {
-        path:"categories",
-        element:<AdminCategories />
+        path: "categories",
+        element: <AdminCategories />
       },
-    {
-        path:"orders",
-        element:<AdminOrders />
+      {
+        path: "orders",
+        element: <AdminOrders />
       },
     ],
   },
@@ -90,30 +101,32 @@ const router = createBrowserRouter([
 function AppRoutes() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: "#363636",
-            color: "#fff",
-          },
-          success: {
-            iconTheme: {
-              primary: "#10b981",
-              secondary: "#fff",
+      <CartProvider>
+        <RouterProvider router={router} />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: "#363636",
+              color: "#fff",
             },
-          },
-          error: {
-            iconTheme: {
-              primary: "#ef4444",
-              secondary: "#fff",
+            success: {
+              iconTheme: {
+                primary: "#10b981",
+                secondary: "#fff",
+              },
             },
-          },
-        }}
-      />
-      <ReactQueryDevtools initialIsOpen={false} />
+            error: {
+              iconTheme: {
+                primary: "#ef4444",
+                secondary: "#fff",
+              },
+            },
+          }}
+        />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </CartProvider>
     </QueryClientProvider>
   );
 }

@@ -2,11 +2,18 @@ import React, { useState } from 'react';
 import { Heart, ShoppingCart, Share2, Star, Check, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useCart } from '../../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function ProductInfo({ product }) {
+  const navigate = useNavigate();
+  const { addToCart, isInCart, getCartItem } = useCart();
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
+
+  const cartItem = selectedSize ? getCartItem(product._id, selectedSize._id) : null;
+  const inCart = selectedSize ? isInCart(product._id, selectedSize._id) : false;
 
   const handleAddToCart = () => {
     if (!selectedSize) {
@@ -17,8 +24,32 @@ export default function ProductInfo({ product }) {
       toast.error('This size is out of stock');
       return;
     }
-    // Add to cart logic here
-    toast.success('Added to cart!');
+
+    const result = addToCart(product, selectedSize, quantity);
+    if (result.success) {
+      toast.success(result.message);
+      setQuantity(1);
+    } else {
+      toast.error(result.message);
+    }
+  };
+
+  const handleBuyNow = () => {
+    if (!selectedSize) {
+      toast.error('Please select a size');
+      return;
+    }
+    if (!selectedSize.isAvailable) {
+      toast.error('This size is out of stock');
+      return;
+    }
+
+    const result = addToCart(product, selectedSize, quantity);
+    if (result.success) {
+      navigate('/cart');
+    } else {
+      toast.error(result.message);
+    }
   };
 
   const handleShare = () => {
@@ -34,6 +65,7 @@ export default function ProductInfo({ product }) {
     }
   };
 
+  
   return (
     <div className="space-y-6">
       
@@ -72,9 +104,7 @@ export default function ProductInfo({ product }) {
             <Star
               key={i}
               className={`w-5 h-5 ${
-                i < 4
-                  ? 'fill-amber-400 text-amber-400'
-                  : 'text-gray-300'
+                i < 4 ? 'fill-amber-400 text-amber-400' : 'text-gray-300'
               }`}
             />
           ))}
@@ -82,17 +112,23 @@ export default function ProductInfo({ product }) {
         <span className="text-sm text-gray-600">(4.8) 127 reviews</span>
       </div>
 
-      {/* Price */}
+      {/* Price with Discount */}
       {selectedSize && (
         <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
-          <div className="flex items-baseline gap-3">
+          <div className="flex items-baseline gap-3 flex-wrap">
             <span className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              ${(selectedSize.price * 0.8).toFixed(2)}
+            </span>
+            <span className="text-2xl text-gray-400 line-through">
               ${selectedSize.price}
             </span>
-            <span className="text-gray-600 text-lg">
-              / {selectedSize.size}{selectedSize.unit}
+            <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full text-sm font-bold">
+              20% OFF
             </span>
           </div>
+          <p className="text-gray-600 text-sm mt-2">
+            Size: {selectedSize.size}{selectedSize.unit} • Save ${(selectedSize.price * 0.2).toFixed(2)}
+          </p>
           <div className="mt-3 flex items-center gap-2">
             {selectedSize.isAvailable ? (
               <>
@@ -102,9 +138,7 @@ export default function ProductInfo({ product }) {
                 </span>
               </>
             ) : (
-              <span className="text-sm text-red-600 font-medium">
-                Out of stock
-              </span>
+              <span className="text-sm text-red-600 font-medium">Out of stock</span>
             )}
           </div>
         </div>
@@ -112,14 +146,15 @@ export default function ProductInfo({ product }) {
 
       {/* Size Selection */}
       <div className="space-y-3">
-        <label className="block text-sm font-semibold text-gray-900">
-          Select Size
-        </label>
+        <label className="block text-sm font-semibold text-gray-900">Select Size</label>
         <div className="grid grid-cols-3 gap-3">
           {product.sizes?.map((size) => (
             <button
               key={size._id}
-              onClick={() => setSelectedSize(size)}
+              onClick={() => {
+                setSelectedSize(size);
+                setQuantity(1); // Reset quantity when changing size
+              }}
               disabled={!size.isAvailable}
               className={`relative p-4 rounded-xl border-2 transition-all ${
                 selectedSize?._id === size._id
@@ -133,7 +168,10 @@ export default function ProductInfo({ product }) {
                 <p className="text-lg font-bold text-gray-900">
                   {size.size}{size.unit}
                 </p>
-                <p className="text-sm text-gray-600">${size.price}</p>
+                <p className="text-sm text-gray-600 line-through">${size.price}</p>
+                <p className="text-sm text-purple-600 font-bold">
+                  ${(size.price * 0.8).toFixed(2)}
+                </p>
               </div>
               {!size.isAvailable && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-xl">
@@ -147,9 +185,7 @@ export default function ProductInfo({ product }) {
 
       {/* Quantity */}
       <div className="space-y-3">
-        <label className="block text-sm font-semibold text-gray-900">
-          Quantity
-        </label>
+        <label className="block text-sm font-semibold text-gray-900">Quantity</label>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3 bg-gray-100 rounded-xl p-1">
             <button
@@ -160,53 +196,80 @@ export default function ProductInfo({ product }) {
             </button>
             <span className="w-12 text-center font-semibold">{quantity}</span>
             <button
-              onClick={() => setQuantity(Math.min(selectedSize?.stock || 1, quantity + 1))}
+              onClick={() =>
+                setQuantity(Math.min(selectedSize?.stock || 1, quantity + 1))
+              }
               className="w-10 h-10 rounded-lg bg-white hover:bg-gray-50 transition-colors font-semibold"
             >
               +
             </button>
           </div>
           {selectedSize && (
-            <span className="text-sm text-gray-600">
-              Max: {selectedSize.stock}
+            <span className="text-sm text-gray-600">Max: {selectedSize.stock}</span>
+          )}
+          {inCart && cartItem && (
+            <span className="text-sm text-purple-600 font-medium">
+              {cartItem.quantity} already in cart
             </span>
           )}
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
+      <div className="space-y-3">
+        <div className="flex gap-3">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleAddToCart}
+            disabled={!selectedSize?.isAvailable}
+            className="flex-1 flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-600 to-purple-600 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {inCart ? (
+              <>
+                <Check className="w-5 h-5" />
+                Add More
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-5 h-5" />
+                Add to Cart
+              </>
+            )}
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsLiked(!isLiked)}
+            className={`p-4 rounded-xl border-2 transition-all ${
+              isLiked
+                ? 'border-rose-500 bg-rose-50 text-rose-600'
+                : 'border-gray-200 hover:border-rose-300 text-gray-600'
+            }`}
+          >
+            <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={handleShare}
+            className="p-4 rounded-xl border-2 border-gray-200 hover:border-purple-300 text-gray-600 transition-all"
+          >
+            <Share2 className="w-6 h-6" />
+          </motion.button>
+        </div>
+
+        {/* Buy Now Button */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={handleAddToCart}
+          onClick={handleBuyNow}
           disabled={!selectedSize?.isAvailable}
-          className="flex-1 flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-600 to-purple-600 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <ShoppingCart className="w-5 h-5" />
-          Add to Cart
-        </motion.button>
-
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setIsLiked(!isLiked)}
-          className={`p-4 rounded-xl border-2 transition-all ${
-            isLiked
-              ? 'border-rose-500 bg-rose-50 text-rose-600'
-              : 'border-gray-200 hover:border-rose-300 text-gray-600'
-          }`}
-        >
-          <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
-        </motion.button>
-
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={handleShare}
-          className="p-4 rounded-xl border-2 border-gray-200 hover:border-purple-300 text-gray-600 transition-all"
-        >
-          <Share2 className="w-6 h-6" />
+          Buy Now
         </motion.button>
       </div>
 

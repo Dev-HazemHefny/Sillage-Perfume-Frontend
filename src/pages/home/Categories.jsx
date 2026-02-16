@@ -1,42 +1,41 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import CategoryCard from './CategoryCard';
 import { useCategories } from '../../hooks/useCategories';
-import CategoryCardSkeleton from './CategoryCardSkeleton';
-import { AlertCircle, RefreshCw, Sparkles, ArrowRight, Grid3x3 } from 'lucide-react';
+import CategoryCard from '../../components/common/CategoryCard';
+import CategoryCardSkeleton from '../../components/common/CategoryCardSkeleton';
+import { AlertCircle, RefreshCw, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const CategorySection = () => {
-  const { data, isLoading, error, refetch } = useCategories({ isActive: true, limit: 6 });
+export default function Categories() {
+  const { data, isLoading, error, refetch } = useCategories({ isActive: true });
 
   const categories = data?.data || [];
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-rose-50 to-amber-50">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-rose-50 to-amber-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16 space-y-4"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-purple-100">
-            <Grid3x3 className="w-4 h-4 text-purple-500" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-purple-100 mb-6">
+            <Sparkles className="w-4 h-4 text-purple-500" />
             <span className="text-sm font-medium bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Collections
+              Explore Collections
             </span>
           </div>
 
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-            Explore <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Categories</span>
-          </h2>
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+            Perfume <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Categories</span>
+          </h1>
           
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             {categories.length > 0 
-              ? `Browse through ${categories.length} curated fragrance ${categories.length === 1 ? 'collection' : 'collections'}`
-              : 'Browse through our curated fragrance collections'}
+              ? `Discover ${categories.length} unique fragrance ${categories.length === 1 ? 'category' : 'categories'}`
+              : 'Discover our unique fragrance categories'
+            }
           </p>
         </motion.div>
 
@@ -67,16 +66,17 @@ const CategorySection = () => {
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {isLoading ? (
+            // Loading Skeletons
             Array.from({ length: 6 }).map((_, index) => (
               <CategoryCardSkeleton key={`skeleton-${index}`} />
             ))
           ) : categories.length > 0 ? (
+            // Category Cards
             categories.map((category, index) => (
               <motion.div
                 key={category._id}
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
                 <CategoryCard
@@ -88,6 +88,7 @@ const CategorySection = () => {
               </motion.div>
             ))
           ) : (
+            // Empty State
             !error && (
               <div className="col-span-full text-center py-20">
                 <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
@@ -101,27 +102,7 @@ const CategorySection = () => {
             )
           )}
         </div>
-
-        {/* View All Button */}
-        {categories.length >= 6 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center mt-12"
-          >
-            <Link
-              to="/categories"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
-            >
-              View All Categories
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </motion.div>
-        )}
       </div>
-    </section>
+    </div>
   );
-};
-
-export default CategorySection;
+}

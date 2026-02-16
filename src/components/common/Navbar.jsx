@@ -30,6 +30,8 @@ const Navbar = () => {
     { path: '/', label: 'Home' },
     { path: '/products', label: 'Shop' },
     { path: '/categories', label: 'Categories' },
+      { path: '/track-order', label: 'Track Order' },
+
   ];
 
   const isActive = (path) => {

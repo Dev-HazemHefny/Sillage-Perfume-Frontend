@@ -19,6 +19,7 @@ import AdminRoute from "./AdminRoute";
 import { CartProvider } from "../context/CartContext";
 import Categories from "../pages/home/Categories";
 import CategoryProducts from "../pages/home/CategoryProducts";
+import TrackOrder from "../pages/home/TrackOrder";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,7 +52,7 @@ const router = createBrowserRouter([
         path: "cart",
         element: <Cart />,
       },
-         {
+      {
         path: "categories",
         element: <Categories />,
       },
@@ -59,6 +60,10 @@ const router = createBrowserRouter([
         path: "categories/:categoryId",
         element: <CategoryProducts />,
       },
+      {
+        path: "track-order",
+        element: <TrackOrder />
+      }
     ],
   },
   {

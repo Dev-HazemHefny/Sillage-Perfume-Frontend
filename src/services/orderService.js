@@ -30,17 +30,22 @@ export const orderService = {
   },
 
   // Get orders (Admin)
-  getOrders: async (params) => {
-    try {
-      console.log('📡 Fetching orders with params:', params);
-      const response = await axiosInstance.get('/orders', { params });
-      console.log('✅ Orders fetched:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('❌ Error fetching orders:', error);
-      throw error;
+ getOrders: async (params) => {
+  try {
+    // ✅ Map 'status' param to 'orderStatus' for backend
+    const mappedParams = { ...params };
+    if (mappedParams.status) {
+      mappedParams.orderStatus = mappedParams.status;
+      delete mappedParams.status;
     }
-  },
+    
+    const response = await axiosInstance.get('/orders', { params: mappedParams });
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching orders:', error);
+    throw error;
+  }
+},
 
   // Get order by ID (Admin)
   getOrderById: async (id) => {

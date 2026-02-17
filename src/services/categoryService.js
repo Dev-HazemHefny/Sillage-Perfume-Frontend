@@ -56,13 +56,15 @@ export const categoryService = {
   },
 
   // Delete category (Admin)
-  deleteCategory: async (id) => {
-    try {
-      const response = await axiosInstance.delete(`/categories/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error('❌ Error deleting category:', error);
-      throw error;
-    }
-  },
+ deleteCategory: async (id) => {
+  try {
+    // ✅ Handle if full object was passed instead of ID
+    const categoryId = typeof id === 'object' ? id._id : id;
+    const response = await axiosInstance.delete(`/categories/${categoryId}`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error deleting category:', error);
+    throw error;
+  }
+},
 };

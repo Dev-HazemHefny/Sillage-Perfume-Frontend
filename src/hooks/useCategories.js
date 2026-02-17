@@ -45,8 +45,12 @@ export const useDeleteCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: categoryService.deleteCategory,
-    onSuccess: (data) => {
+    // ✅ Extract _id if full object passed
+    mutationFn: (idOrObject) => {
+      const id = typeof idOrObject === 'object' ? idOrObject._id : idOrObject;
+      return categoryService.deleteCategory(id);
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
   });
